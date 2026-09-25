@@ -1,4 +1,4 @@
-﻿/// ファイルパス: lib/main.dart
+/// ファイルパス: lib/main.dart
 /// エントリポイント、広告・課金初期化、アプリテーマ
 /// 関連ファイル: lib/screens/onboarding_screen.dart, lib/services/ad_service.dart
 library;
@@ -55,14 +55,22 @@ class _AimitsumoriAppState extends State<AimitsumoriApp>
     with WidgetsBindingObserver {
   bool _darkModeEnabled = false;
 
-  AppPreferences get _preferences =>
-      widget.preferences ?? AppPreferences.instance;
-
-  AdService get _adService => widget.adService ?? AdService.instance;
+  late final ProjectRepository _repository;
+  late final ProjectRequirementRepository _requirementRepository;
+  late final QuoteRevisionRepository _quoteRevisionRepository;
+  late final AppPreferences _preferences;
+  late final AdService _adService;
 
   @override
   void initState() {
     super.initState();
+    _repository = widget.repository ?? ProjectRepository.instance;
+    _requirementRepository =
+        widget.requirementRepository ?? ProjectRequirementRepository.instance;
+    _quoteRevisionRepository =
+        widget.quoteRevisionRepository ?? QuoteRevisionRepository.instance;
+    _preferences = widget.preferences ?? AppPreferences.instance;
+    _adService = widget.adService ?? AdService.instance;
     WidgetsBinding.instance.addObserver(this);
     _loadDarkMode();
   }
@@ -144,10 +152,10 @@ class _AimitsumoriAppState extends State<AimitsumoriApp>
         );
       },
       home: FirstRunGate(
-        repository: widget.repository,
-        requirementRepository: widget.requirementRepository,
-        quoteRevisionRepository: widget.quoteRevisionRepository,
-        adService: widget.adService,
+        repository: _repository,
+        requirementRepository: _requirementRepository,
+        quoteRevisionRepository: _quoteRevisionRepository,
+        adService: _adService,
         darkModeEnabled: _darkModeEnabled,
         onDarkModeChanged: _setDarkMode,
       ),
