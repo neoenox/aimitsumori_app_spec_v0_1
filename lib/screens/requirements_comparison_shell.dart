@@ -8,6 +8,7 @@ import '../repositories/project_repository.dart';
 import '../repositories/project_requirement_repository.dart';
 import '../repositories/quote_revision_repository.dart';
 import '../services/ad_service.dart';
+import '../services/project_view_refresh_coordinator.dart';
 import 'comparison_screen.dart';
 import 'document_scanner_screen.dart';
 import 'quote_revision_screen.dart';
@@ -36,21 +37,15 @@ class RequirementsComparisonShell extends StatefulWidget {
 
 class _RequirementsComparisonShellState
     extends State<RequirementsComparisonShell> {
-  int _selectedIndex = 0;
-  int _requirementsRevision = 0;
-  int _historyRevision = 0;
-  int _comparisonRevision = 0;
+  final ProjectViewRefreshCoordinator _refresh =
+      ProjectViewRefreshCoordinator();
   late Project _project = widget.project;
 
   ProjectRepository get _projectRepository =>
       widget.projectRepository ?? ProjectRepository.instance;
 
   void _select(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 1) _requirementsRevision += 1;
-      if (index == 2) _historyRevision += 1;
-    });
+    setState(() => _refresh.selectView(index));
   }
 
   Future<void> _openScanner() async {
@@ -68,9 +63,7 @@ class _RequirementsComparisonShellState
     if (!mounted || refreshed == null) return;
     setState(() {
       _project = refreshed;
-      _comparisonRevision += 1;
-      _historyRevision += 1;
-      _selectedIndex = 0;
+      _refresh.projectChangedFromScanner();
     });
     ScaffoldMessenger.of(
       context,
@@ -81,22 +74,22 @@ class _RequirementsComparisonShellState
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: _selectedIndex,
+        index: _refresh.selectedIndex,
         children: [
           ComparisonScreen(
-            key: ValueKey('comparison-$_comparisonRevision'),
+            key: ValueKey('comparison-${_refresh.comparisonRevision}'),
             project: _project,
             repository: _projectRepository,
             adService: widget.adService,
           ),
           RequirementsComparisonScreen(
-            key: ValueKey('requirements-$_requirementsRevision'),
+            key: ValueKey('requirements-${_refresh.requirementsRevision}'),
             project: _project,
             projectRepository: _projectRepository,
             repository: widget.requirementRepository,
           ),
           QuoteRevisionScreen(
-            key: ValueKey('quote-history-$_historyRevision'),
+            key: ValueKey('quote-history-${_refresh.historyRevision}'),
             project: _project,
             projectRepository: _projectRepository,
             repository: widget.quoteRevisionRepository,
@@ -110,7 +103,7 @@ class _RequirementsComparisonShellState
         label: const Text('見積を撮影'),
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
+        selectedIndex: _refresh.selectedIndex,
         onDestinationSelected: _select,
         destinations: const [
           NavigationDestination(
