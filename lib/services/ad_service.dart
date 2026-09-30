@@ -16,6 +16,106 @@ import 'purchase_verification_service.dart';
 
 enum RewardedAdOutcome { rewarded, unavailable, dismissed }
 
+abstract interface class AdConsentPlatform {
+  Future<void> requestUpdate();
+  Future<void> showRequiredForm();
+  Future<bool> canRequestAds();
+  Future<bool> privacyOptionsRequired();
+  Future<void> showPrivacyOptions();
+}
+
+class GoogleUmpConsentPlatform implements AdConsentPlatform {
+  const GoogleUmpConsentPlatform();
+
+  @override
+  Future<void> requestUpdate() {
+    final completer = Completer<void>();
+    ConsentInformation.instance.requestConsentInfoUpdate(
+      ConsentRequestParameters(),
+      () => completer.complete(),
+      (error) => completer.completeError(error),
+    );
+    return completer.future;
+  }
+
+  @override
+  Future<void> showRequiredForm() {
+    final completer = Completer<void>();
+    ConsentForm.loadAndShowConsentFormIfRequired((error) {
+      if (error == null) {
+        completer.complete();
+      } else {
+        completer.completeError(error);
+      }
+    });
+    return completer.future;
+  }
+
+  @override
+  Future<bool> canRequestAds() => ConsentInformation.instance.canRequestAds();
+
+  @override
+  Future<bool> privacyOptionsRequired() async =>
+      await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
+      PrivacyOptionsRequirementStatus.required;
+
+  @override
+  Future<void> showPrivacyOptions() {
+    final completer = Completer<void>();
+    ConsentForm.showPrivacyOptionsForm((error) {
+      if (error == null) {
+        completer.complete();
+      } else {
+        completer.completeError(error);
+      }
+    });
+    return completer.future;
+  }
+}
+
+class AdConsentManager {
+  AdConsentManager({AdConsentPlatform? platform})
+    : _platform = platform ?? const GoogleUmpConsentPlatform();
+
+  final AdConsentPlatform _platform;
+  bool canRequestAds = false;
+  bool privacyOptionsRequired = false;
+
+  Future<void> refresh() async {
+    try {
+      await _platform.requestUpdate();
+      await _platform.showRequiredForm();
+    } catch (_) {
+      // A prior valid consent state may still allow ads.
+    }
+    await _sync();
+  }
+
+  Future<bool> reopenPrivacyOptions() async {
+    try {
+      await _platform.showPrivacyOptions();
+    } catch (_) {
+      await _sync();
+      return false;
+    }
+    await _sync();
+    return true;
+  }
+
+  Future<void> _sync() async {
+    try {
+      canRequestAds = await _platform.canRequestAds();
+    } catch (_) {
+      canRequestAds = false;
+    }
+    try {
+      privacyOptionsRequired = await _platform.privacyOptionsRequired();
+    } catch (_) {
+      privacyOptionsRequired = false;
+    }
+  }
+}
+
 /// リワード広告のロード完了とタイムアウトの競合を調停する。
 /// 一度確定したら二度と変わらず、確定後の遅延ロード広告は表示できない。
 @visibleForTesting
