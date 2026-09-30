@@ -1,0 +1,24 @@
+name: Format diagnostic
+
+on:
+  push:
+    branches:
+      - fix/issue-51-exterior-scope
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.0"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Print formatter diff
+        shell: bash
+        run: |
+          dart format lib test integration_test
+          git diff -- test/widget_test.dart
+          test -z "$(git status --short --untracked-files=no)"
