@@ -129,7 +129,7 @@ class _AimitsumoriAppState extends State<AimitsumoriApp>
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '相見積もり比較',
+      title: '外構見積もり比較',
       // Japanese locale keeps CJK glyph fallback aligned with Japanese forms
       // instead of allowing the device default to select Chinese glyphs.
       locale: const Locale('ja', 'JP'),
