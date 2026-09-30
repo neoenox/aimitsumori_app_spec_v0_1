@@ -147,7 +147,7 @@ class OnboardingScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              '見積書の「違い」を見つける',
+              '外構工事の見積書を比較する',
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
@@ -155,14 +155,25 @@ class OnboardingScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const Text(
-              '総合点や順位ではなく、価格・工事範囲・不明点を並べて確認するアプリです。',
+              '外構工事の見積書を、価格・工事範囲・不明点の固定18カテゴリで整理して比較するアプリです。',
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            Card(
+              key: const ValueKey('exterior-scope-warning'),
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'このアプリは外構工事専用です。土間コンクリート、カーポート、フェンス、造成・掘削、残土処分、重機回送など18カテゴリを前提に比較します。内装リフォーム・引越し・車検など他分野の見積書には使用しないでください。',
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             const _OnboardingStep(
               number: '1',
               icon: Icons.document_scanner_outlined,
-              title: '見積書を取り込む',
+              title: '外構工事の見積書を取り込む',
               description: 'PDFまたは写真を選ぶと、端末内OCRで文字を読み取ります。',
             ),
             const _OnboardingStep(
