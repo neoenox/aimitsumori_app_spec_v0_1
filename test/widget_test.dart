@@ -20,7 +20,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('外構工事の見積書を比較する'), findsOneWidget);
-    expect(find.byKey(const ValueKey('exterior-scope-warning')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('exterior-scope-warning')),
+      findsOneWidget,
+    );
     expect(find.textContaining('このアプリは外構工事専用です'), findsOneWidget);
     expect(find.textContaining('引越し・車検'), findsOneWidget);
     expect(find.text('サンプルデータで試す'), findsOneWidget);
