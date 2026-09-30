@@ -1,5 +1,6 @@
 import 'package:aimitsumori_app/main.dart';
 import 'package:aimitsumori_app/repositories/project_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,7 +20,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('見積書の「違い」を見つける'), findsOneWidget);
+    expect(find.text('外構工事の見積書を比較する'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('exterior-scope-warning')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('このアプリは外構工事専用です'), findsOneWidget);
+    expect(find.textContaining('引越し・車検'), findsOneWidget);
+
+    await tester.scrollUntilVisible(find.text('サンプルデータで試す'), 300);
     expect(find.text('サンプルデータで試す'), findsOneWidget);
     expect(find.text('空の状態から始める'), findsOneWidget);
     expect(database.getProjectsCallCount, 0);

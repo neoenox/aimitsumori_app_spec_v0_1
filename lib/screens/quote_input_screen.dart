@@ -439,12 +439,23 @@ class _QuoteInputScreenState extends State<QuoteInputScreen> {
             Semantics(
               header: true,
               child: Text(
-                '見積書を取り込む',
+                '外構工事の見積書を取り込む',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             const SizedBox(height: 8),
             const Text('PDFまたは写真を読み取り、内容を確認してから保存します。'),
+            const SizedBox(height: 12),
+            Card(
+              key: const ValueKey('quote-exterior-scope-warning'),
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              child: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text(
+                  '対応範囲は外構工事の固定18カテゴリです。内装リフォーム・引越し・車検など他分野の見積書は取り込まず、分野に合った方法で確認してください。',
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             if (ocrSupported)
               Wrap(
