@@ -147,7 +147,7 @@ class OnboardingScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              '外構工事の見積書の「違い」を見つける',
+              '見積書の「違い」を見つける',
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
