@@ -28,10 +28,7 @@ void main() {
     expect(find.textContaining('このアプリは外構工事専用です'), findsOneWidget);
     expect(find.textContaining('引越し・車検'), findsOneWidget);
 
-    await tester.scrollUntilVisible(
-      find.text('サンプルデータで試す'),
-      300,
-    );
+    await tester.scrollUntilVisible(find.text('サンプルデータで試す'), 300);
     expect(find.text('サンプルデータで試す'), findsOneWidget);
     expect(find.text('空の状態から始める'), findsOneWidget);
     expect(database.getProjectsCallCount, 0);
