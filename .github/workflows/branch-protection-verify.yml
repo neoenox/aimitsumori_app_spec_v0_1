@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 3 * * *"
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/branch-protection-verify.yml'
+      - '.github/rulesets/main-required-checks.json'
+      - 'tool/*applied_branch_protection.mjs'
 
 permissions:
   contents: read
@@ -13,45 +18,13 @@ jobs:
     name: Verify applied branch protection on main
     runs-on: ubuntu-latest
     steps:
-      - name: Verify applied branch protection
-        shell: bash
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test applied-state validator
+        run: node --test tool/test_verify_applied_branch_protection.mjs
+      - name: Verify effective branch rules and active rulesets
         env:
-          GITHUB_TOKEN: ${{ secrets.BRANCH_PROTECTION_TOKEN }}
-          EXPECTED_REQUIRED_CHECKS: "Format, analyze, test, debug build|Android emulator E2E|Release APK compile|Record release tag"
-        run: |
-          set -euo pipefail
-          if [ -z "$GITHUB_TOKEN" ]; then
-            echo "::error::BRANCH_PROTECTION_TOKEN secret is not configured."
-            echo "Add a classic PAT with 'repo' scope as BRANCH_PROTECTION_TOKEN so CI can read the applied protection via the admin API."
-            exit 1
-          fi
-          code=$(curl -sS -o protection.json -w '%{http_code}' \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${GITHUB_REPOSITORY}/branches/main/protection)
-          if [ "$code" != "200" ]; then
-            echo "::error::Failed to read applied branch protection (HTTP $code). Check token validity/scope."
-            head -c 500 protection.json || true
-            exit 1
-          fi
-          node -e '
-            const p = require("./protection.json");
-            const requiredNames = process.env.EXPECTED_REQUIRED_CHECKS.split("|").map((s) => s.trim()).filter(Boolean);
-            const contexts = p.required_status_checks?.contexts ?? [];
-            const missing = requiredNames.filter(
-              (name) => !contexts.some((c) => c === name || c.startsWith(name))
-            );
-            if (missing.length > 0) {
-              console.error("Missing required status checks:", missing.join(", "));
-              process.exit(1);
-            }
-            if (!p.required_pull_request_reviews) {
-              console.error("Pull request reviews are not required.");
-              process.exit(1);
-            }
-            if (p.allow_force_pushes?.enabled !== false || p.allow_deletions?.enabled !== false) {
-              console.error("Force push / deletion prevention is not enabled.");
-              process.exit(1);
-            }
-            console.log("Applied branch protection matches expectations:", contexts.join(", "));
-          '
+          BRANCH_PROTECTION_TOKEN: ${{ secrets.BRANCH_PROTECTION_TOKEN }}
+        run: node tool/verify_applied_branch_protection.mjs "$GITHUB_REPOSITORY"
