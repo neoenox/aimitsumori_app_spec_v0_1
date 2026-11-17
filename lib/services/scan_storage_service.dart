@@ -2,9 +2,10 @@ library;
 
 import 'dart:io';
 
-import '../utils/app_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+
+import '../utils/app_logger.dart';
 
 typedef ScanDocumentsDirectoryProvider = Future<Directory> Function();
 typedef ScanFileDeleter = Future<void> Function(File file);
@@ -38,7 +39,7 @@ class ScanStorageService {
     await directory.create(recursive: true);
 
     final extension = p.extension(sourcePath).toLowerCase();
-    final safeExtension = RegExp(r'^\\.[a-z0-9]{1,8}$').hasMatch(extension)
+    final safeExtension = RegExp(r'^\.[a-z0-9]{1,8}$').hasMatch(extension)
         ? extension
         : '.jpg';
     final target = File(
