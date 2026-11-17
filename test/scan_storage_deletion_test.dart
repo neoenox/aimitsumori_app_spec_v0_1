@@ -58,9 +58,7 @@ void main() {
 
   test('cleanupProject reports failure and can be retried', () async {
     final project = Directory(p.join(documents.path, 'scans', 'project-1'));
-    await Directory(
-      p.join(project.path, 'session-1'),
-    ).create(recursive: true);
+    await Directory(p.join(project.path, 'session-1')).create(recursive: true);
 
     final failing = storage(
       directoryDeleter: (target) async {
@@ -124,10 +122,9 @@ void main() {
         repository.deleteProject('project-1'),
         throwsA(isA<ProjectRepositoryException>()),
       );
-      expect(
-        (await database.getProjects()).map((item) => item.id),
-        ['project-1'],
-      );
+      expect((await database.getProjects()).map((item) => item.id), [
+        'project-1',
+      ]);
       expect(await project.exists(), isTrue);
 
       final retryRepository = ProjectRepository(
@@ -166,10 +163,9 @@ void main() {
         throwsA(isA<ProjectRepositoryException>()),
       );
       expect(database.deleteAllDataCallCount, 0);
-      expect(
-        (await database.getProjects()).map((item) => item.id),
-        ['project-1'],
-      );
+      expect((await database.getProjects()).map((item) => item.id), [
+        'project-1',
+      ]);
       expect(await root.exists(), isTrue);
 
       final retryRepository = ProjectRepository(
