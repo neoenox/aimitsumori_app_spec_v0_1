@@ -57,7 +57,12 @@ class ScanStorageService {
     if (!await file.exists()) return;
 
     try {
-      await (fileDeleter ?? (target) => target.delete())(file);
+      final delete = fileDeleter;
+      if (delete == null) {
+        await file.delete();
+      } else {
+        await delete(file);
+      }
     } on FileSystemException catch (error, stackTrace) {
       AppLogger.debug('Scan file cleanup failed: $error\n$stackTrace');
       rethrow;
@@ -99,8 +104,12 @@ class ScanStorageService {
     if (!await directory.exists()) return;
 
     try {
-      await (directoryDeleter ??
-          (target) => target.delete(recursive: true))(directory);
+      final delete = directoryDeleter;
+      if (delete == null) {
+        await directory.delete(recursive: true);
+      } else {
+        await delete(directory);
+      }
     } on FileSystemException catch (error, stackTrace) {
       AppLogger.debug('$operation failed: $error\n$stackTrace');
       rethrow;
@@ -115,8 +124,9 @@ class ScanStorageService {
   }
 
   Future<Directory> _scanRoot() async {
-    final documents = await (documentsDirectoryProvider ??
-        getApplicationDocumentsDirectory)();
+    final provider =
+        documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
+    final documents = await provider();
     return Directory(p.join(documents.path, 'scans'));
   }
 
