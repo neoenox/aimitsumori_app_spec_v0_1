@@ -56,57 +56,49 @@ void main() {
     },
   );
 
-  test(
-    'cleanupProject reports failure and can be retried',
-    () async {
-      final project = Directory(
-        p.join(documents.path, 'scans', 'project-1'),
-      );
-      await Directory(p.join(project.path, 'session-1')).create(
-        recursive: true,
-      );
+  test('cleanupProject reports failure and can be retried', () async {
+    final project = Directory(p.join(documents.path, 'scans', 'project-1'));
+    await Directory(p.join(project.path, 'session-1')).create(
+      recursive: true,
+    );
 
-      final failing = storage(
-        directoryDeleter: (target) async {
-          throw FileSystemException('simulated delete failure', target.path);
-        },
-      );
+    final failing = storage(
+      directoryDeleter: (target) async {
+        throw FileSystemException('simulated delete failure', target.path);
+      },
+    );
 
-      await expectLater(
-        failing.cleanupProject('project-1'),
-        throwsA(isA<FileSystemException>()),
-      );
-      expect(await project.exists(), isTrue);
+    await expectLater(
+      failing.cleanupProject('project-1'),
+      throwsA(isA<FileSystemException>()),
+    );
+    expect(await project.exists(), isTrue);
 
-      await storage().cleanupProject('project-1');
-      expect(await project.exists(), isFalse);
-    },
-  );
+    await storage().cleanupProject('project-1');
+    expect(await project.exists(), isFalse);
+  });
 
-  test(
-    'cleanupAll reports failure and can be retried',
-    () async {
-      final root = Directory(p.join(documents.path, 'scans'));
-      await Directory(p.join(root.path, 'project-1', 'session-1')).create(
-        recursive: true,
-      );
+  test('cleanupAll reports failure and can be retried', () async {
+    final root = Directory(p.join(documents.path, 'scans'));
+    await Directory(p.join(root.path, 'project-1', 'session-1')).create(
+      recursive: true,
+    );
 
-      final failing = storage(
-        directoryDeleter: (target) async {
-          throw FileSystemException('simulated delete failure', target.path);
-        },
-      );
+    final failing = storage(
+      directoryDeleter: (target) async {
+        throw FileSystemException('simulated delete failure', target.path);
+      },
+    );
 
-      await expectLater(
-        failing.cleanupAll(),
-        throwsA(isA<FileSystemException>()),
-      );
-      expect(await root.exists(), isTrue);
+    await expectLater(
+      failing.cleanupAll(),
+      throwsA(isA<FileSystemException>()),
+    );
+    expect(await root.exists(), isTrue);
 
-      await storage().cleanupAll();
-      expect(await root.exists(), isFalse);
-    },
-  );
+    await storage().cleanupAll();
+    expect(await root.exists(), isFalse);
+  });
 
   test(
     'deleteProject keeps its database row until scan cleanup succeeds',
@@ -114,9 +106,7 @@ void main() {
       final database = MockDatabaseService(
         initialProjects: [createTestProject(id: 'project-1')],
       );
-      final project = Directory(
-        p.join(documents.path, 'scans', 'project-1'),
-      );
+      final project = Directory(p.join(documents.path, 'scans', 'project-1'));
       await Directory(p.join(project.path, 'session-1')).create(
         recursive: true,
       );
