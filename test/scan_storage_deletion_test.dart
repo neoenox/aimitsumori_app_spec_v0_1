@@ -58,9 +58,9 @@ void main() {
 
   test('cleanupProject reports failure and can be retried', () async {
     final project = Directory(p.join(documents.path, 'scans', 'project-1'));
-    await Directory(p.join(project.path, 'session-1')).create(
-      recursive: true,
-    );
+    await Directory(
+      p.join(project.path, 'session-1'),
+    ).create(recursive: true);
 
     final failing = storage(
       directoryDeleter: (target) async {
@@ -80,9 +80,9 @@ void main() {
 
   test('cleanupAll reports failure and can be retried', () async {
     final root = Directory(p.join(documents.path, 'scans'));
-    await Directory(p.join(root.path, 'project-1', 'session-1')).create(
-      recursive: true,
-    );
+    await Directory(
+      p.join(root.path, 'project-1', 'session-1'),
+    ).create(recursive: true);
 
     final failing = storage(
       directoryDeleter: (target) async {
@@ -107,9 +107,9 @@ void main() {
         initialProjects: [createTestProject(id: 'project-1')],
       );
       final project = Directory(p.join(documents.path, 'scans', 'project-1'));
-      await Directory(p.join(project.path, 'session-1')).create(
-        recursive: true,
-      );
+      await Directory(
+        p.join(project.path, 'session-1'),
+      ).create(recursive: true);
 
       final repository = ProjectRepository(
         databaseService: database,
@@ -148,9 +148,9 @@ void main() {
         initialProjects: [createTestProject(id: 'project-1')],
       );
       final root = Directory(p.join(documents.path, 'scans'));
-      await Directory(p.join(root.path, 'project-1', 'session-1')).create(
-        recursive: true,
-      );
+      await Directory(
+        p.join(root.path, 'project-1', 'session-1'),
+      ).create(recursive: true);
 
       final repository = ProjectRepository(
         databaseService: database,
