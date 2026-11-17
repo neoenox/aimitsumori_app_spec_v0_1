@@ -131,7 +131,7 @@ class ProjectRepository {
     } on ProjectRepositoryException {
       rethrow;
     } catch (error, stackTrace) {
-      AppLogger.debug('$operation failed: $error\\n$stackTrace');
+      AppLogger.debug('$operation failed: $error\n$stackTrace');
       throw ProjectRepositoryException(operation, error);
     }
   }
