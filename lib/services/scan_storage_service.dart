@@ -1,14 +1,26 @@
 library;
 
-import '../utils/app_logger.dart';
-
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../utils/app_logger.dart';
+
+typedef ScanDocumentsDirectoryProvider = Future<Directory> Function();
+typedef ScanFileDeleter = Future<void> Function(File file);
+typedef ScanDirectoryDeleter = Future<void> Function(Directory directory);
+
 class ScanStorageService {
-  const ScanStorageService();
+  const ScanStorageService({
+    this.documentsDirectoryProvider,
+    this.fileDeleter,
+    this.directoryDeleter,
+  });
+
+  final ScanDocumentsDirectoryProvider? documentsDirectoryProvider;
+  final ScanFileDeleter? fileDeleter;
+  final ScanDirectoryDeleter? directoryDeleter;
 
   Future<String> persistCapture({
     required String sourcePath,
@@ -41,11 +53,23 @@ class ScanStorageService {
   Future<void> deletePath(String path) async {
     final root = await _scanRoot();
     _assertInsideRoot(root, path);
+    final file = File(path);
+    if (!await file.exists()) return;
+
     try {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
+      final delete = fileDeleter;
+      if (delete == null) {
+        await file.delete();
+      } else {
+        await delete(file);
+      }
     } on FileSystemException catch (error, stackTrace) {
       AppLogger.debug('Scan file cleanup failed: $error\n$stackTrace');
+      rethrow;
+    }
+
+    if (await file.exists()) {
+      throw FileSystemException('Scan file remains after cleanup', path);
     }
   }
 
@@ -77,15 +101,32 @@ class ScanStorageService {
     Directory directory, {
     required String operation,
   }) async {
+    if (!await directory.exists()) return;
+
     try {
-      if (await directory.exists()) await directory.delete(recursive: true);
+      final delete = directoryDeleter;
+      if (delete == null) {
+        await directory.delete(recursive: true);
+      } else {
+        await delete(directory);
+      }
     } on FileSystemException catch (error, stackTrace) {
       AppLogger.debug('$operation failed: $error\n$stackTrace');
+      rethrow;
+    }
+
+    if (await directory.exists()) {
+      throw FileSystemException(
+        '$operation did not remove the directory',
+        directory.path,
+      );
     }
   }
 
   Future<Directory> _scanRoot() async {
-    final documents = await getApplicationDocumentsDirectory();
+    final provider =
+        documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
+    final documents = await provider();
     return Directory(p.join(documents.path, 'scans'));
   }
 

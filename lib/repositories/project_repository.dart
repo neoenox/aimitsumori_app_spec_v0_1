@@ -50,20 +50,22 @@ class ProjectRepository {
   Future<void> deleteProject(String projectId) => _run(
     operation: '案件の削除',
     action: () async {
-      await _databaseService.deleteProject(projectId);
+      // Keep the database record until scan files are confirmed removed. If
+      // cleanup fails, the project remains visible and the user can retry.
       final storage = _scanStorageService;
       if (storage != null) await storage.cleanupProject(projectId);
+      await _databaseService.deleteProject(projectId);
     },
   );
 
   Future<void> deleteAllData() => _run(
     operation: '全データの削除',
     action: () async {
+      // Cleanup is idempotent. Run it first so a filesystem failure cannot
+      // clear the database while leaving sensitive scan files behind.
       final storage = _scanStorageService;
-      await Future.wait<void>([
-        _databaseService.deleteAllData(),
-        if (storage != null) storage.cleanupAll(),
-      ], eagerError: false);
+      if (storage != null) await storage.cleanupAll();
+      await _databaseService.deleteAllData();
     },
   );
 
