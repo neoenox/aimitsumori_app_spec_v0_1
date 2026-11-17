@@ -59,7 +59,7 @@ class ScanStorageService {
     try {
       await (fileDeleter ?? (target) => target.delete())(file);
     } on FileSystemException catch (error, stackTrace) {
-      AppLogger.debug('Scan file cleanup failed: $error\\n$stackTrace');
+      AppLogger.debug('Scan file cleanup failed: $error\n$stackTrace');
       rethrow;
     }
 
@@ -102,7 +102,7 @@ class ScanStorageService {
       await (directoryDeleter ??
           (target) => target.delete(recursive: true))(directory);
     } on FileSystemException catch (error, stackTrace) {
-      AppLogger.debug('$operation failed: $error\\n$stackTrace');
+      AppLogger.debug('$operation failed: $error\n$stackTrace');
       rethrow;
     }
 
