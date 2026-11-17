@@ -58,6 +58,9 @@ jobs:
         shell: pwsh
         run: ./tool/configure_github_repository.ps1 -ValidateOnly
 
+      - name: Print formatted scan cleanup test
+        run: dart format --output=show test/scan_storage_deletion_test.dart
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed lib test integration_test
 
@@ -138,16 +141,11 @@ jobs:
           profile: pixel_6
           disk-size: 4096M
           disable-animations: true
-          # Override the default userdata size after AVD creation; ubuntu runners
-          # may not have enough free space for the action's default partition.
           pre-emulator-launch-script: |
-            # ReactiveCircus executes this hook with /usr/bin/sh, so avoid
-            # Bash-only pipefail while retaining fail-fast behavior.
             set -eu
-            # Free runner disk used by toolchains not needed for Flutter E2E.
             sudo rm -rf /usr/share/dotnet /opt/ghc
             sudo rm -rf "$ANDROID_HOME/ndk" "$ANDROID_HOME/cmake"
-            config="$HOME/.android/avd/test.avd/config.ini"; sed -i '/^disk.dataPartition.size=/d' "$config"; printf '%s\n' 'disk.dataPartition.size=4294967296' >> "$config"
+            config="$HOME/.android/avd/test.avd/config.ini"; sed -i '/^disk.dataPartition.size=/d' "$config"; printf '%s\\n' 'disk.dataPartition.size=4294967296' >> "$config"
           script: |
             set -eu
             echo 'E2E: starting Flutter integration test'
@@ -169,7 +167,7 @@ jobs:
     env:
       ADMOB_APP_ID: ca-app-pub-1234567890123456~1234567890
       ADMOB_ANDROID_BANNER_ID: ca-app-pub-1234567890123456/1234567890
-      ADMOB_ANDROID_REWARDED_ID: ca-app-pub-1234567890123456/0987654321
+      ADMOB_ANDROID_REWARDED_ID: ca-app-pub-1234567890/0987654321
       REMOVE_ADS_PRODUCT_ID: remove_ads_ci
       PURCHASE_VERIFICATION_URL: https://purchase-verification.invalid/verify
     steps:
@@ -272,18 +270,16 @@ jobs:
         run: |
           set -euo pipefail
           version="$(awk '/^version:[[:space:]]+/ { print $2; exit }' pubspec.yaml)"
-          if [[ ! "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)$ ]]; then
+          if [[ ! "$version" =~ ^([0-9]+\\.[0-9]+\\.[0-9]+)\\+([0-9]+)$ ]]; then
             echo "::error::pubspec.yaml version must use x.y.z+build format: $version"
             exit 1
           fi
-
           release_version="${BASH_REMATCH[1]}"
           tag="v${release_version}"
           if ! grep -Fq "## [${release_version}]" CHANGELOG.md; then
             echo "::error::CHANGELOG.md does not contain ## [${release_version}]"
             exit 1
           fi
-
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Create annotated tag
@@ -296,7 +292,6 @@ jobs:
             echo "${RELEASE_TAG} already exists; nothing to do."
             exit 0
           fi
-
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git tag -a "$RELEASE_TAG" "$GITHUB_SHA" -m "Release $RELEASE_TAG"
